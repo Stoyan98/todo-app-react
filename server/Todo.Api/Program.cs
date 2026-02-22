@@ -1,39 +1,26 @@
 using Microsoft.EntityFrameworkCore;
 using Todo.Api.Data;
-using Todo.Api.Endpoints;
+using Todo.Api.Features.Todos;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// OpenAPI / Swagger
 builder.Services.AddOpenApi();
 
-builder.Services.AddHttpsRedirection(options =>
-{
-    options.HttpsPort = 7295;
-});
-
-builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseInMemoryDatabase("TodosDb"));
 
-builder.Services.AddCors(opt =>
-{
-    opt.AddPolicy("client", policy =>
-        policy.AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowAnyOrigin());
-});
-
 var app = builder.Build();
 
-app.UseCors("client");
-
+// Swagger endpoint
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+app.MapTodos();
 
-app.MapTodoEndpoints();
+// Test endpoint
+app.MapGet("/test", () => "API RUNNING");
 
 app.Run();

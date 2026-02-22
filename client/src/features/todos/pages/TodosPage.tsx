@@ -1,20 +1,48 @@
 import { useState } from "react";
-import { useAppDispatch, useAppSelector } from "../../../app/hooks";
-import { addTodo, toggleTodo, deleteTodo } from "../todosSlice";
-import type { Todo } from "../types/todo";
+import {
+  useGetTodosQuery,
+  useAddTodoMutation,
+  useToggleTodoMutation,
+  useDeleteTodoMutation,
+} from "../api/todosApi";
 import "../../../styles/todo.css";
 
 export const TodosPage = () => {
     const [text, setText] = useState("");
 
-    const todos: Todo[] = useAppSelector(state => state.todos.items);
-    const dispatch = useAppDispatch();
+    const { data: todos = [], isLoading } = useGetTodosQuery();
 
-    const handleAdd = () => {
+    const [addTodo] = useAddTodoMutation();
+    const [toggleTodo] = useToggleTodoMutation();
+    const [deleteTodo] = useDeleteTodoMutation();
+
+    const handleAdd = async () => {
         if (!text.trim()) return;
-        dispatch(addTodo(text));
-        setText("");
+        try {
+            await addTodo(text).unwrap();
+            setText("");
+        } catch {
+            alert("Failed to add todo");
+        }
     }
+
+    const handleToggle = async (id: string) => {
+        try {
+            await toggleTodo(id);
+        } catch {
+            alert("Failed toggle todo");
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        try {
+            await deleteTodo(id);
+        } catch {
+            alert("Failed delete todo");
+        }
+    };
+
+    if (isLoading) return <p>Loading...</p>;    
 
     return (
         <div className="todo-container">
@@ -34,7 +62,7 @@ export const TodosPage = () => {
                 {todos.map(todo => (
                     <li key={todo.id} className="todo-item">
                         <span
-                            onClick={() => dispatch(toggleTodo(todo.id))}
+                            onClick={() => handleToggle(todo.id)}
                             className={`todo-text ${
                                 todo.completed ? "completed" : ""
                             }`}
@@ -42,7 +70,7 @@ export const TodosPage = () => {
                             {todo.title}
                         </span>
 
-                        <button className="btn-delete" onClick={() => dispatch(deleteTodo(todo.id))}>
+                        <button className="btn-delete" onClick={async () => handleDelete(todo.id)}>
                             X
                         </button>
                     </li>

@@ -2,19 +2,19 @@ using Todo.Api.Data;
 using Todo.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Todo.Api.Endpoints;
+namespace Todo.Api.Features.Todos;
 
 public static class TodoEndpoints
 {
-    public static RouteGroupBuilder MapTodoEndpoints(this IEndpointRouteBuilder app)    
+    public static RouteGroupBuilder MapTodos(this IEndpointRouteBuilder app)    
     {
-        var group = app.MapGroup("/api/todos");
+       var group = app.MapGroup("/api/todos");
 
-        // GET
+        // GET ALL
         group.MapGet("/", async (AppDbContext db) =>
             await db.Todos.ToListAsync());
 
-        // POST
+        // ADD
         group.MapPost("/", async (TodoItem todo, AppDbContext db) =>
         {
             todo.Id = Guid.NewGuid();
@@ -34,6 +34,7 @@ public static class TodoEndpoints
                 return Results.NotFound();
 
             todo.Completed = !todo.Completed;
+
             await db.SaveChangesAsync();
 
             return Results.NoContent();
@@ -48,6 +49,7 @@ public static class TodoEndpoints
                 return Results.NotFound();
 
             db.Todos.Remove(todo);
+
             await db.SaveChangesAsync();
 
             return Results.NoContent();
